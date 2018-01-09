@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 
 '''
+
+This file is a modification of the original vtk demo to calculate the Gaussian and Mean Curvatures for an STL surface file.
+
+Example call:
+
+    python CurvaturesFromStl.py ~/projects/cornea_project/Lepto/lepto_surface.stl
+
+
 The purpose of this is to demonstrate how to get the Gaussian and Mean curvatures of a surface.
 
 Two different surfaces are used in this demonstration with each surface coloured according
@@ -29,6 +37,8 @@ This example also demonstrates the use of lists and the linking of the elements 
 
 '''
 import vtk
+import sys
+
 
 class CurvaturesDemo():
 
@@ -43,7 +53,7 @@ class CurvaturesDemo():
             return polydata
 
         # Read data from stl filter
-        stlFilename = "Lepto/lepto_surface.stl"
+        stlFilename = sys.argv[1]
         reader = vtk.vtkSTLReader()
         reader.SetFileName(stlFilename)
 
@@ -105,7 +115,7 @@ class CurvaturesDemo():
         # The quadric is made of strips, so pass it through a triangle filter as
         # the curvature filter only operates on polys
         tri = vtk.vtkTriangleFilter()
-        # tri.SetInputConnection(torusTF.GetOutputPort())
+        #tri.SetInputConnection(torusTF.GetOutputPort())
         tri.SetInputConnection(reader.GetOutputPort())
 
 
@@ -114,11 +124,11 @@ class CurvaturesDemo():
         # are coincident, or very close
 
         smoother = vtk.vtkSmoothPolyDataFilter()
-        smoother.SetInput(polydata)
-        smoother.SetNumberOfIterations(100)
+        smoother.SetInputConnection(tri.GetOutputPort())
+        smoother.SetNumberOfIterations(300)
 
         cleaner = vtk.vtkCleanPolyData()
-        cleaner.SetInputConnection(tri.GetOutputPort())
+        cleaner.SetInputConnection(smoother.GetOutputPort())
         cleaner.SetTolerance(0.005)
 
         #smoother = vtk.vtkSmoothPolyDataFilter()
@@ -136,6 +146,8 @@ class CurvaturesDemo():
         sources.append(cleaner)
         sources.append(rhFnSrc)
         sources.append(rhFnSrc)
+
+        print(len(sources))
 
         # Colour transfer function.
         ctf = vtk.vtkColorTransferFunction()
@@ -170,6 +182,8 @@ class CurvaturesDemo():
                 curvatures[idx].SetCurvatureTypeToGaussian()
             else:
                 curvatures[idx].SetCurvatureTypeToMean()
+
+        print(curvatures[0].GetOutput())
 
         renderers = list()
         mappers = list()
@@ -207,6 +221,15 @@ class CurvaturesDemo():
             textactors[idx].SetPosition(150, 16)
 
             renderers.append(vtk.vtkRenderer())
+
+        # only first two elements corespond to the stl file.
+        # print(len(curvatures))
+        print(curvatures[2].GetOutput())
+        # print(curvatures[0].GetOutput().getData())
+        import inspect
+        print(inspect.getmembers(curvatures[0].GetOutput().GetPointData()))
+        print(curvatures[0].GetOutput().GetPointData().GetScalars())
+
 
         gridDimensions = 2
 
@@ -249,6 +272,7 @@ class CurvaturesDemo():
         renderWindow.Render()
 
         interactor.Start()
+        print(curvatures[1].GetOutput())
 
 if __name__ == "__main__":
     po = CurvaturesDemo()
