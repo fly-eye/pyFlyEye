@@ -125,11 +125,19 @@ class CurvaturesDemo():
 
         smoother = vtk.vtkSmoothPolyDataFilter()
         smoother.SetInputConnection(tri.GetOutputPort())
-        smoother.SetNumberOfIterations(300)
+        smoother.SetNumberOfIterations(1000)
+        #smoother.Set
+
+        subdiv = vtk.vtkLinearSubdivisionFilter()
+        subdiv.SetInputConnection(smoother.GetOutputPort())
+        subdiv.SetNumberOfSubdivisions(1)
+        subdiv.Update()
 
         cleaner = vtk.vtkCleanPolyData()
-        cleaner.SetInputConnection(smoother.GetOutputPort())
+        cleaner.SetInputConnection(subdiv.GetOutputPort())
         cleaner.SetTolerance(0.005)
+
+
 
         #smoother = vtk.vtkSmoothPolyDataFilter()
         #smoother.SetInput(cleaner)
