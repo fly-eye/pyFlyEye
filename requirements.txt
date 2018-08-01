@@ -3,5 +3,5 @@ networkx==1.11
 pandas
 numpy
 scikit-learn
-plotly
+plotly==2.2.1
 scipy
